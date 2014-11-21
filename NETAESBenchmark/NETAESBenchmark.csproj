@@ -50,7 +50,7 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>EncryptionBenchmark.Program</StartupObject>
+    <StartupObject>NETAESBenchmark.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="ManyConsole">
