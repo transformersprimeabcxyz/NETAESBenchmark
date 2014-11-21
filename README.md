@@ -23,4 +23,35 @@ You'll want to change the following at the very least:
 * set the _cipherMode and the _padding to the ones you'd be using, as well as the _keysize
 * _mOE tells the program how many times to run the iteration past the point it finds Managed AES to be slower (10 is a good number, this will directly affect the number of times you'd have to press <enter> to get the final results. The intermediate results could also be interesting)
 
+Sample results
+=============
+Here's the first output from the program (which I ran just now on my laptop)
+```
+With the current parameters ...
+Managed AES has a distinct advantage for data sizes below 75 bytes !
+Performance is almost identical (with fluctuations about 0.000133 milliseconds)
+for the 76 to 143 byte ranges.
+
+Use native AES for buffers larger than 154 to save ~0.000455ms per iteration !
+
+Press enter to run the benchmark further to find the upper limit given the curre
+nt 0.001ms margin ...
+```
+*Note that given the input parameters you CAN get negative results for the fluctuations, which simply means Managed AES was on average that much faster.*
+
+And when I pressed enter twice, it finally reached the _margin (which was 0.001ms/iteration)
+```
+With the current parameters ...
+Managed AES has a distinct advantage for data sizes below 75 bytes !
+Performance is almost identical (with fluctuations about 0.000896 milliseconds)
+for the 76 to 159 byte ranges.
+
+Use native AES for buffers larger than 170 to save ~0.001014ms per iteration !
+
+Press enter to exit ...
+
+Result: if your average data size approaches 170 bytes ManagedAes would be 0.001
+014ms slower which approaches your margin !
+```
+
 TODO: complete this !
