@@ -12,7 +12,7 @@ namespace NETAESBenchmark
         #region "Settings"
         private const double _margin = 0.001;           // time difference in milliseconds that we consider to be significant
         const int _keysize = 32;                        // must be a legal AES key size
-        private const int _iterations = 0x186A0 / 10;   // how many times to run each encryption/decryption run ... 10K by default
+        private const int _iterations = 0x186A0 / 10;   // how many times to run each encryption/decryption run ... 1K by default
         const int _startSize = 1;                       // initial data size to encrypt
         const int _maxSize = 2000;                      // maximum size to encrypt 
         const int _step = 1;                            // increase data size by _step each run
