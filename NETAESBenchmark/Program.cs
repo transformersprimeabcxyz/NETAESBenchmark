@@ -85,7 +85,7 @@ namespace EncryptionBenchmark
                 _last = sw.Elapsed;
 
                 if (_begSize == 0) _begSize = _dataSize;
-                if (_cOcc == 0) { _cOcSz = _dataSize; }
+                if (_cOcc++ == 0) { _cOcSz = _dataSize; }
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("\t\t" + sw.Elapsed);
 
@@ -93,20 +93,25 @@ namespace EncryptionBenchmark
                 Console.ForegroundColor = ConsoleColor.Gray;
                 if ((_cOcc >= _mOE & _curVar > 0) | (_msVar = (_avgDev / 1000000f)) > _margin)
                 {
+                    bool _marginNReach = _msVar <= _margin;
+
                     Console.ForegroundColor = ConsoleColor.Green;
                     Console.WriteLine(
                         "\n\n================\n" +
                         "With the current parameters ...\n"
                         + "Managed AES has a distinct advantage for data sizes below {0} bytes !\n" +
                         "Performance is almost identical (with fluctuations about {4} milliseconds) for the {1} to {2} byte ranges.\n" +
-                        "Use native AES for buffers larger than {3} to save ~{5}ms per iteration !\n" +
-                        "\nPress enter to run the benchmark further " +
-                        ((_msVar <= _margin) ? "to find the upper limit given the current {5}ms margin ...\n" : " (would be an overkill tho) !!!"),
-                        _begSize, _begSize + 1, _cOcSz - (_mOE * _step), _cOcSz + 1, _curVar, _margin);
+                        "\nUse native AES for buffers larger than {3} to save ~{6}ms per iteration !\n" +
+                        "\nPress enter to " +
+                        (_marginNReach
+                            ? "run the benchmark further to find the upper limit given the current {5}ms margin ...\n"
+                            : "exit ...\n\nResult: if your average data size approaches {3} bytes ManagedAes would be {6}ms slower which approaches your margin !\n\n"),
+                        _begSize, _begSize + 1, _dataSize - (_mOE * _step), _dataSize + 1, _curVar, _margin, _msVar);
                     Console.ReadLine();
-                    _cOcc = 0;
+                    if (!_marginNReach) Environment.Exit(1);
+                    _cOcc = _cOcSz = 0;
                 }
-                if (++_cOcc == 1) { _curVar = _msVar; }
+                if (_cOcc == 1) { _curVar = _msVar; }
                 return;
             }
             if (_isManaged) _cOcc = 0;
