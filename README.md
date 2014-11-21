@@ -82,11 +82,9 @@ Result: if your average data size approaches 170 bytes ManagedAes would be 0.001
 
 <h2>Final Thoughts&nbsp;</h2>
 
-<p><img alt="" src="http://imgs.xkcd.com/comics/efficiency.png" style="margin-removed 10px; margin-removed 10px; color: rgb(51, 51, 51); font-family: 'Helvetica Neue', Helvetica, 'Segoe UI', Arial, freesans, sans-serif; font-size: 16px; line-height: 25.6000003814697px; width: 329px; height: 214px; float: right;" /></p>
-
 <p style="box-sizing: border-box;"><font color="#333333" face="Helvetica Neue, Helvetica, Segoe UI, Arial, freesans, sans-serif"><span style="font-size: 16px; line-height: 25.6000003814697px;">Now this might seem an awful lot of work (coding and writing) to shave a few milliseconds off&nbsp;</span></font></p>
 
-<p style="box-sizing: border-box;"><font color="#333333" face="Helvetica Neue, Helvetica, Segoe UI, Arial, freesans, sans-serif"><span style="font-size: 16px; line-height: 25.6000003814697px;">(which can be worth it if you&#39;re doing hundreds of thousands of iterations every second) ... which in retrospect was worth it (also, I did it already, so you won&#39;t have to) with all that said, I still feel like what I usually do perfectly matches&nbsp;<a href="http://xkcd.com/1445/">xkcd&#39;s 1445th comic panel</a>&nbsp;(pictured on the side)</span></font></p>
+<p style="box-sizing: border-box;"><font color="#333333" face="Helvetica Neue, Helvetica, Segoe UI, Arial, freesans, sans-serif"><span style="font-size: 16px; line-height: 25.6000003814697px;">(which can be worth it if you&#39;re doing hundreds of thousands of iterations every second) ... which in retrospect was worth it (also, I did it already, so you won&#39;t have to) with all that said, I still feel like what I usually do perfectly matches&nbsp;<a href="http://xkcd.com/1445/">xkcd&#39;s 1445th comic panel</a> !</font></p>
 
 <p style="box-sizing: border-box;">&nbsp;</p>
 
