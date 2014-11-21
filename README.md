@@ -1,84 +1,103 @@
-.NET AES Benchmark
-===============
-This is a small (and not so clean) program I wrote quickly to test the performance of Managed vs Native AES implementations available on the framework.
-Background
-============
-As you may know .net framework provides two classes inherited from `Aes` that implement Advanced Encryption Standard, `AesCryptoServiceProvider` which is a native (i.e. non managed code) implementation that calls the [MS CryptoAPI](http://en.wikipedia.org/wiki/Microsoft_CryptoAPI) and `AesManaged` which is a purely managed implementation of the algorithm. So the question most are asking is [which one should I use ?](https://www.google.com/search?q=aesmanaged%20vs%20aescryptoserviceprovider&rct=j)
+<h2>Introduction</h2>
 
-`AesCryptoServiceProvider` calls CAPI which is FIPS compliant (wheras `AesManaged` isn't) and CAPI is managed code and it is [generally accepted that native code runs faster than managed code](https://www.google.com/webhp?ion=1&ie=UTF-8#q=managed%20code%20vs%20native%20code%20performance) due to various overheads like JIT compilation and the fact that there is an extra abstraction layer on top of the operating system when you're running managed code ... that may be true, but does that mean that it is always a good idea to call native implementation of an algorithm in a managed environment ? Can we write `AesManaged` off ?
+<p style="font-family: 'Helvetica Neue', Helvetica, 'Segoe UI', Arial, freesans, sans-serif; font-size: 16px; line-height: 25.6000003814697px; color: rgb(51, 51, 51); box-sizing: border-box; margin-removed 0px; margin-removed 16px;">As you may know .net framework provides two classes inherited from&nbsp;<code style="padding-removed 0.2em; padding-removed 0.2em; font-size: 14px; font-family: Consolas, 'Liberation Mono', Menlo, Courier, monospace; box-sizing: border-box; border-radius: 3px; background-color: rgba(0, 0, 0, 0.0392157);">Aes</code>&nbsp;that implement Advanced Encryption Standard,&nbsp;<code style="padding-removed 0.2em; padding-removed 0.2em; font-size: 14px; font-family: Consolas, 'Liberation Mono', Menlo, Courier, monospace; box-sizing: border-box; border-radius: 3px; background-color: rgba(0, 0, 0, 0.0392157);">AesCryptoServiceProvider</code>&nbsp;which is a native (i.e. non managed code) implementation that calls the&nbsp;<a href="http://en.wikipedia.org/wiki/Microsoft_CryptoAPI" style="color: rgb(65, 131, 196); box-sizing: border-box; background-image: initial; background-attachment: initial; background-size: initial; background-origin: initial; background-clip: initial; background-removed: initial; background-repeat: initial;">MS CryptoAPI</a>&nbsp;and&nbsp;<code style="padding-removed 0.2em; padding-removed 0.2em; font-size: 14px; font-family: Consolas, 'Liberation Mono', Menlo, Courier, monospace; box-sizing: border-box; border-radius: 3px; background-color: rgba(0, 0, 0, 0.0392157);">AesManaged</code>&nbsp;which is a purely managed implementation of the algorithm. So the question most are asking is&nbsp;<a href="https://www.google.com/search?q=aesmanaged%20vs%20aescryptoserviceprovider&amp;rct=j" style="color: rgb(65, 131, 196); box-sizing: border-box; background-image: initial; background-attachment: initial; background-size: initial; background-origin: initial; background-clip: initial; background-removed: initial; background-repeat: initial;">which one should I use ?</a></p>
 
-Well, that depends on your application, loading COM objects and calling unmanaged code (e.g. using P/Invoke) is somewhat expensive in terms of memory and the initialization time when compared to instanciating a managed object. On the other hand native code usually runs faster (if implemented correctly).
+<p style="font-family: 'Helvetica Neue', Helvetica, 'Segoe UI', Arial, freesans, sans-serif; font-size: 16px; line-height: 25.6000003814697px; color: rgb(51, 51, 51); box-sizing: border-box; margin-removed 0px; margin-removed 16px;"><code style="padding-removed 0.2em; padding-removed 0.2em; font-size: 14px; font-family: Consolas, 'Liberation Mono', Menlo, Courier, monospace; box-sizing: border-box; border-radius: 3px; background-color: rgba(0, 0, 0, 0.0392157);">AesCryptoServiceProvider</code>&nbsp;calls CAPI which is FIPS compliant (whereas&nbsp;<code style="padding-removed 0.2em; padding-removed 0.2em; font-size: 14px; font-family: Consolas, 'Liberation Mono', Menlo, Courier, monospace; box-sizing: border-box; border-radius: 3px; background-color: rgba(0, 0, 0, 0.0392157);">AesManaged</code>&nbsp;isn&#39;t) and CAPI is managed code and it is&nbsp;<a href="https://www.google.com/webhp?ion=1&amp;ie=UTF-8#q=managed%20code%20vs%20native%20code%20performance" style="color: rgb(65, 131, 196); box-sizing: border-box; background-image: initial; background-attachment: initial; background-size: initial; background-origin: initial; background-clip: initial; background-removed: initial; background-repeat: initial;">generally accepted that native code runs faster than managed code</a>&nbsp;due to various overheads like JIT compilation and the fact that there is an extra abstraction layer on top of the operating system when you&#39;re running managed code ... that may be true, but does that mean that it is always a good idea to call native implementation of an algorithm in a managed environment ? Can we write&nbsp;<code style="padding-removed 0.2em; padding-removed 0.2em; font-size: 14px; font-family: Consolas, 'Liberation Mono', Menlo, Courier, monospace; box-sizing: border-box; border-radius: 3px; background-color: rgba(0, 0, 0, 0.0392157);">AesManaged</code>&nbsp;off ?</p>
 
-This creates an interesting phenomena that managed objects perform faster when the initialization time outweighs the execution of the method(s) that we are calling ! And that's why I created this benchmark tool, to evaluate how each implementation performs with different data sizes, key sizes etc.
+<p style="font-family: 'Helvetica Neue', Helvetica, 'Segoe UI', Arial, freesans, sans-serif; font-size: 16px; line-height: 25.6000003814697px; color: rgb(51, 51, 51); box-sizing: border-box; margin-removed 0px; margin-removed 16px;">Well, that depends on your application, loading COM objects and calling unmanaged code (e.g. using P/Invoke) is somewhat expensive in terms of memory and the initialization time when compared to instantiating&nbsp;a managed object. On the other hand native code usually runs faster (if implemented correctly).</p>
 
-Approach / Assumptions
-============
-Before even coding a single line for this benchmark tool I did assume (due to the reasons stated above) that `AesManaged` should be ideal (faster?) for encrypting/decrypting smaller buffers, while it would be painfully slow when encrypting/decrypting much larger buffers. Which in turn makes the native `AesCryptoServiceProvider` implementation ideal for larger buffers.
+<p style="font-family: 'Helvetica Neue', Helvetica, 'Segoe UI', Arial, freesans, sans-serif; font-size: 16px; line-height: 25.6000003814697px; color: rgb(51, 51, 51); box-sizing: border-box; margin-removed 0px; margin-removed 16px;">This creates an interesting phenomena that managed objects perform faster when the initialization time outweighs the execution of the method(s) that we are calling ! And that&#39;s why I created this benchmark tool, to evaluate how each implementation performs with different data sizes, key sizes etc.</p>
 
-Now I had two objectives, test my hypothesis and find the line where initialization overhead would no longer outweigh the execution time and that would be dependent on many factors, from the versions of CAPI and .net framework you'd be using to the host configuration and most imporatntly the average buffer size you would be dealing with in your application *(I'm going to call that the critical buffer size, or critical size for short)*.
+<h2>Approach / Assumptions</h2>
 
-This tool can be run on the production machine that has the exact version of all the APIs and the hardware you'd be using in your deployment and configured to try and mimic the scenarios you'd be dealing with to find the critical size in your environment *(I haven't run this code in many places, so I can't comment in how each of those factos might correlate just yet)*.
+<p style="font-family: 'Helvetica Neue', Helvetica, 'Segoe UI', Arial, freesans, sans-serif; font-size: 16px; line-height: 25.6000003814697px; color: rgb(51, 51, 51); box-sizing: border-box; margin-removed 0px; margin-removed 16px;">Before even coding a single line for this benchmark tool I did assume (due to the reasons stated above) that&nbsp;<code style="padding-removed 0.2em; padding-removed 0.2em; font-size: 14px; font-family: Consolas, 'Liberation Mono', Menlo, Courier, monospace; box-sizing: border-box; border-radius: 3px; background-color: rgba(0, 0, 0, 0.0392157);">AesManaged</code>&nbsp;should be ideal (faster?) for encrypting/decrypting smaller buffers, while it would be painfully slow when encrypting/decrypting much larger buffers. Which in turn makes the native&nbsp;<code style="padding-removed 0.2em; padding-removed 0.2em; font-size: 14px; font-family: Consolas, 'Liberation Mono', Menlo, Courier, monospace; box-sizing: border-box; border-radius: 3px; background-color: rgba(0, 0, 0, 0.0392157);">AesCryptoServiceProvider</code>&nbsp;implementation ideal for larger buffers.</p>
 
-***NOTE: Just to give you an idea this could save you  0.001 millisecond per iteration when dealing with buffers around 160 bytes (that is 10e-6 seconds) which in my case can be  significants ! If you don't do many iterations or your application/API's performance is not that important I'd say go with CAPI and skip this !***
+<p style="font-family: 'Helvetica Neue', Helvetica, 'Segoe UI', Arial, freesans, sans-serif; font-size: 16px; line-height: 25.6000003814697px; color: rgb(51, 51, 51); box-sizing: border-box; margin-removed 0px; margin-removed 16px;">Now I had two objectives, test my hypothesis and find the line where initialization overhead would no longer outweigh the execution time and that would be dependent on many factors, from the versions of CAPI and .net framework you&#39;d be using to the host configuration and most importantly&nbsp;the average buffer size you would be dealing with in your application&nbsp;<em style="box-sizing: border-box;">(I&#39;m going to call that the critical buffer size, or critical size for short)</em>.</p>
 
+<p style="font-family: 'Helvetica Neue', Helvetica, 'Segoe UI', Arial, freesans, sans-serif; font-size: 16px; line-height: 25.6000003814697px; color: rgb(51, 51, 51); box-sizing: border-box; margin-removed 0px; margin-removed 16px;">This tool can be run on the production machine that has the exact version of all the APIs and the hardware you&#39;d be using in your deployment and configured to try and mimic the scenarios you&#39;d be dealing with to find the critical size in your environment&nbsp;<em style="box-sizing: border-box;">(I haven&#39;t run this code in many places, so I can&#39;t comment in how each of those factors might correlate just yet)</em>.</p>
 
-Configuration
-============
-Configuration is pretty straightforward since I wrote/tested documented this in a couple of hours, just take a look at the "Settings" region to fine tune the benchmark parameters (by changing the consts) to emulate your application behavior/needs.
-```C# 
-        #region "Settings"
-        private const double _margin = 0.001;
-        const int _keysize = 256;
-        const int _iterations = 0x186A0 / 10;
-        const int _startSize = 1;
-        const int _maxSize = 2000;
-        const int _step = 1;
-        const CipherMode _cipherMode = CipherMode.CBC;
-        const PaddingMode _padding = PaddingMode.PKCS7;
-        private const int _mOE = 10;
-        private const bool _disposeEachCycle = true;
-        #endregion
-```
-Here's a description of what each of the settings do *(pardon my abstract naming convention)*:
-* `_margin`: is the time difference in milliseconds that you'd consider a significant gain for using Native AES implementation over the Managed counterpart.
-* `_iterations`: is the number of times you'd want to run a Encrypt, Decrypt, Dispose cycle for each data size (Bear in mind that setting the _iterations to something lower than 1000 won't give you consistent results, however at higher iterations the overall margin of error associated with the measurements (mostly timing) is minimized and you'll get more consistent results)
-* `_startSize` and `_maxSize` specify the minimum and maximum data array sizes (useful if you'd want to cap the benchmark or skip lower array sizes)
-* `_step`: the current data array size is incremented by `_step` each iteration (I'd suggest you keep this at 1 for the most granular result, however this can be used in conjunction with `_startSize` and `_maxSize` to first find the approximate size you want so you can investigate further in a later run)
-* set the `_cipherMode` and the `_padding` to the ones you'd be using, as well as the `_keysize`
-* `_mOE` tells the program how many times to run the iteration past the point it finds Managed AES to be slower (10 is a good number, this will directly affect the number of times you'd have to press <enter> to get the final results. The intermediate results could also be interesting)
-* `_disposeEachCycle` can be set to false to emualte scenarios where the crypto transform is reused (e.g. using the same keys all the time, no salting, etc.) bear in mind that the Native Decryptor transform goes out of sync the first time you call the `TransformFinalBlock()` on it therefore the benchmark code always calls `CreateDecryptor()` for a new Decryptor (otherwise a `CryptographicException` is thrown with the message *Padding is invalid and cannot be removed* *[bug?]*)
+<p style="font-family: 'Helvetica Neue', Helvetica, 'Segoe UI', Arial, freesans, sans-serif; font-size: 16px; line-height: 25.6000003814697px; color: rgb(51, 51, 51); box-sizing: border-box; margin-removed 0px; margin-removed 16px;"><strong style="box-sizing: border-box;"><em style="box-sizing: border-box;">NOTE: Just to give you an idea this could save you 0.001 millisecond per iteration when dealing with buffers around 160 bytes (that is 10e-6 seconds) which in my case can be significant ! If you don&#39;t do many iterations or your application/API&#39;s performance is not that important I&#39;d say go with CAPI and skip this !</em></strong></p>
 
-Sample results
-=============
-Here's the first output from the program (which I ran just now on my laptop)
-```
+<h2>Using the code</h2>
+
+<p><span style="color: rgb(51, 51, 51); font-family: 'Helvetica Neue', Helvetica, 'Segoe UI', Arial, freesans, sans-serif; font-size: 16px; line-height: 25.6000003814697px; background-color: rgb(255, 255, 255);">Configuration is pretty straightforward since I wrote/tested documented this in a couple of hours, just take a look at the &quot;Settings&quot; region to fine tune the benchmark parameters (by changing the consts) to emulate your application behavior/needs.</span></p>
+
+<pre lang="C++">
+<span class="code-keyword">private</span> <span class="code-keyword">const</span> <span class="code-keyword">double</span> _margin = <span class="code-digit">0</span>.<span class="code-digit">001</span>;
+<span class="code-keyword">const</span> <span class="code-keyword">int</span> _keysize = <span class="code-digit">256</span>;
+<span class="code-keyword">const</span> <span class="code-keyword">int</span> _iterations = 0x186A0 / <span class="code-digit">10</span>;
+<span class="code-keyword">const</span> <span class="code-keyword">int</span> _startSize = <span class="code-digit">1</span>;
+<span class="code-keyword">const</span> <span class="code-keyword">int</span> _maxSize = <span class="code-digit">2000</span>;
+<span class="code-keyword">const</span> <span class="code-keyword">int</span> _step = <span class="code-digit">1</span>;
+<span class="code-keyword">const</span> CipherMode _cipherMode = CipherMode.CBC;
+<span class="code-keyword">const</span> PaddingMode _padding = PaddingMode.PKCS7;
+<span class="code-keyword">private</span> <span class="code-keyword">const</span> <span class="code-keyword">int</span> _mOE = <span class="code-digit">10</span>;
+<span class="code-keyword">private</span> <span class="code-keyword">const</span> <span class="code-keyword">bool</span> _disposeEachCycle = <span class="code-keyword">true</span>;
+</pre>
+
+<p style="font-family: 'Helvetica Neue', Helvetica, 'Segoe UI', Arial, freesans, sans-serif; font-size: 16px; line-height: 25.6000003814697px; color: rgb(51, 51, 51); box-sizing: border-box; margin-removed 0px; margin-removed 16px;">Here&#39;s a description of what each of the settings do&nbsp;<em style="box-sizing: border-box;">(pardon my abstract naming convention)</em>:</p>
+
+<ul class="task-list" style="margin-removed 0px; margin-removed 16px; padding-removed 2em; box-sizing: border-box; color: rgb(51, 51, 51); font-family: 'Helvetica Neue', Helvetica, 'Segoe UI', Arial, freesans, sans-serif; font-size: 16px; line-height: 25.6000003814697px;">
+    <li style="box-sizing: border-box;"><code style="padding-removed 0.2em; padding-removed 0.2em; font-size: 14px; font-family: Consolas, 'Liberation Mono', Menlo, Courier, monospace; box-sizing: border-box; border-radius: 3px; background-color: rgba(0, 0, 0, 0.0392157);">_margin</code>: is the time difference in milliseconds that you&#39;d consider a significant gain for using Native AES implementation over the Managed counterpart.</li>
+    <li style="box-sizing: border-box;"><code style="padding-removed 0.2em; padding-removed 0.2em; font-size: 14px; font-family: Consolas, 'Liberation Mono', Menlo, Courier, monospace; box-sizing: border-box; border-radius: 3px; background-color: rgba(0, 0, 0, 0.0392157);">_iterations</code>: is the number of times you&#39;d want to run a Encrypt, Decrypt, Dispose cycle for each data size (Bear in mind that setting the _iterations to something lower than 1000 won&#39;t give you consistent results, however at higher iterations the overall margin of error associated with the measurements (mostly timing) is minimized and you&#39;ll get more consistent results)</li>
+    <li style="box-sizing: border-box;"><code style="padding-removed 0.2em; padding-removed 0.2em; font-size: 14px; font-family: Consolas, 'Liberation Mono', Menlo, Courier, monospace; box-sizing: border-box; border-radius: 3px; background-color: rgba(0, 0, 0, 0.0392157);">_startSize</code>&nbsp;and&nbsp;<code style="padding-removed 0.2em; padding-removed 0.2em; font-size: 14px; font-family: Consolas, 'Liberation Mono', Menlo, Courier, monospace; box-sizing: border-box; border-radius: 3px; background-color: rgba(0, 0, 0, 0.0392157);">_maxSize</code>&nbsp;specify the minimum and maximum data array sizes (useful if you&#39;d want to cap the benchmark or skip lower array sizes)</li>
+    <li style="box-sizing: border-box;"><code style="padding-removed 0.2em; padding-removed 0.2em; font-size: 14px; font-family: Consolas, 'Liberation Mono', Menlo, Courier, monospace; box-sizing: border-box; border-radius: 3px; background-color: rgba(0, 0, 0, 0.0392157);">_step</code>: the current data array size is incremented by&nbsp;<code style="padding-removed 0.2em; padding-removed 0.2em; font-size: 14px; font-family: Consolas, 'Liberation Mono', Menlo, Courier, monospace; box-sizing: border-box; border-radius: 3px; background-color: rgba(0, 0, 0, 0.0392157);">_step</code>&nbsp;each iteration (I&#39;d suggest you keep this at 1 for the most granular result, however this can be used in conjunction with&nbsp;<code style="padding-removed 0.2em; padding-removed 0.2em; font-size: 14px; font-family: Consolas, 'Liberation Mono', Menlo, Courier, monospace; box-sizing: border-box; border-radius: 3px; background-color: rgba(0, 0, 0, 0.0392157);">_startSize</code>and&nbsp;<code style="padding-removed 0.2em; padding-removed 0.2em; font-size: 14px; font-family: Consolas, 'Liberation Mono', Menlo, Courier, monospace; box-sizing: border-box; border-radius: 3px; background-color: rgba(0, 0, 0, 0.0392157);">_maxSize</code>&nbsp;to first find the approximate size you want so you can investigate further in a later run)</li>
+    <li style="box-sizing: border-box;">set the&nbsp;<code style="padding-removed 0.2em; padding-removed 0.2em; font-size: 14px; font-family: Consolas, 'Liberation Mono', Menlo, Courier, monospace; box-sizing: border-box; border-radius: 3px; background-color: rgba(0, 0, 0, 0.0392157);">_cipherMode</code>&nbsp;and the&nbsp;<code style="padding-removed 0.2em; padding-removed 0.2em; font-size: 14px; font-family: Consolas, 'Liberation Mono', Menlo, Courier, monospace; box-sizing: border-box; border-radius: 3px; background-color: rgba(0, 0, 0, 0.0392157);">_padding</code>&nbsp;to the ones you&#39;d be using, as well as the&nbsp;<code style="padding-removed 0.2em; padding-removed 0.2em; font-size: 14px; font-family: Consolas, 'Liberation Mono', Menlo, Courier, monospace; box-sizing: border-box; border-radius: 3px; background-color: rgba(0, 0, 0, 0.0392157);">_keysize</code></li>
+    <li style="box-sizing: border-box;"><code style="padding-removed 0.2em; padding-removed 0.2em; font-size: 14px; font-family: Consolas, 'Liberation Mono', Menlo, Courier, monospace; box-sizing: border-box; border-radius: 3px; background-color: rgba(0, 0, 0, 0.0392157);">_mOE</code>&nbsp;tells the program how many times to run the iteration past the point it finds Managed AES to be slower (10 is a good number, this will directly affect the number of times you&#39;d have to press to get the final results. The intermediate results could also be interesting)</li>
+    <li style="box-sizing: border-box;"><code style="padding-removed 0.2em; padding-removed 0.2em; font-size: 14px; font-family: Consolas, 'Liberation Mono', Menlo, Courier, monospace; box-sizing: border-box; border-radius: 3px; background-color: rgba(0, 0, 0, 0.0392157);">_disposeEachCycle</code>&nbsp;can be set to false to emualte scenarios where the crypto transform is reused (e.g. using the same keys all the time, no salting, etc.) bear in mind that the Native Decryptor transform goes out of sync the first time you call the&nbsp;<code style="padding-removed 0.2em; padding-removed 0.2em; font-size: 14px; font-family: Consolas, 'Liberation Mono', Menlo, Courier, monospace; box-sizing: border-box; border-radius: 3px; background-color: rgba(0, 0, 0, 0.0392157);">TransformFinalBlock()</code>&nbsp;on it therefore the benchmark code always calls&nbsp;<code style="padding-removed 0.2em; padding-removed 0.2em; font-size: 14px; font-family: Consolas, 'Liberation Mono', Menlo, Courier, monospace; box-sizing: border-box; border-radius: 3px; background-color: rgba(0, 0, 0, 0.0392157);">CreateDecryptor()</code>&nbsp;for a new Decryptor (otherwise a&nbsp;<code style="padding-removed 0.2em; padding-removed 0.2em; font-size: 14px; font-family: Consolas, 'Liberation Mono', Menlo, Courier, monospace; box-sizing: border-box; border-radius: 3px; background-color: rgba(0, 0, 0, 0.0392157);">CryptographicException</code>&nbsp;is thrown with the message&nbsp;<em style="box-sizing: border-box;">Padding is invalid and cannot be removed</em>)</li>
+</ul>
+
+<h2>Sample Results</h2>
+
+<p style="font-family: 'Helvetica Neue', Helvetica, 'Segoe UI', Arial, freesans, sans-serif; font-size: 16px; line-height: 25.6000003814697px; color: rgb(51, 51, 51); box-sizing: border-box; margin-removed 0px; margin-removed 16px;">Here&#39;s the first output from the program (which I ran just now on my laptop)</p>
+
+<pre lang="text" style="color: rgb(51, 51, 51); padding: 16px; font-size: 14px; line-height: 1.45; font-family: Consolas, 'Liberation Mono', Menlo, Courier, monospace; box-sizing: border-box; margin-removed 0px; margin-removed 16px; border-radius: 3px; word-wrap: normal; background-color: rgb(247, 247, 247);">
 With the current parameters ...
 Managed AES has a distinct advantage for data sizes below 75 bytes !
 Performance is almost identical (with fluctuations about 0.000133 milliseconds)
 for the 76 to 143 byte ranges.
-
 Use native AES for buffers larger than 154 to save ~0.000455ms per iteration !
-
 Press enter to run the benchmark further to find the upper limit given the curre
 nt 0.001ms margin ...
-```
-*Note that given the input parameters you CAN get negative results for the fluctuations, which simply means Managed AES was on average that much faster.*
+</pre>
 
-And when I pressed enter twice, it finally reached the _margin (which was 0.001ms/iteration)
-```
+<p style="font-family: 'Helvetica Neue', Helvetica, 'Segoe UI', Arial, freesans, sans-serif; font-size: 16px; line-height: 25.6000003814697px; color: rgb(51, 51, 51); box-sizing: border-box; margin-removed 0px; margin-removed 16px;"><em style="box-sizing: border-box;">Note that given the input parameters you CAN get negative results for the fluctuations, which simply means Managed AES was on average that much faster.</em></p>
+
+<p style="font-family: 'Helvetica Neue', Helvetica, 'Segoe UI', Arial, freesans, sans-serif; font-size: 16px; line-height: 25.6000003814697px; color: rgb(51, 51, 51); box-sizing: border-box; margin-removed 0px; margin-removed 16px;">After continuing the bechmark by pressing enter twice, it finally reached the <span style="color: rgb(153, 0, 0); font-family: Consolas, 'Liberation Mono', Menlo, Courier, monospace; background-color: rgba(0, 0, 0, 0.0392157);">_margin</span><span style="color: rgb(51, 51, 51); font-family: 'Helvetica Neue', Helvetica, 'Segoe UI', Arial, freesans, sans-serif; font-size: 16px; line-height: 25.6000003814697px;">&nbsp;</span>(which&nbsp;was 0.001ms / iteration)</p>
+
+<pre lang="text" style="color: rgb(51, 51, 51); padding: 16px; font-size: 14px; line-height: 1.45; font-family: Consolas, 'Liberation Mono', Menlo, Courier, monospace; box-sizing: border-box; margin-removed 0px; margin-removed 16px; border-radius: 3px; word-wrap: normal; background-color: rgb(247, 247, 247);">
 With the current parameters ...
 Managed AES has a distinct advantage for data sizes below 75 bytes !
 Performance is almost identical (with fluctuations about 0.000896 milliseconds)
 for the 76 to 159 byte ranges.
-
 Use native AES for buffers larger than 170 to save ~0.001014ms per iteration !
-
 Press enter to exit ...
-
 Result: if your average data size approaches 170 bytes ManagedAes would be 0.001
 014ms slower which approaches your margin !
-```
+</pre>
 
-- 0.001ms gain during a single iteration for a 170byte buffer doesn't seem like much but you can try to run the program with a higher `_iterations` value and bigger buffer sizes and you'll see this difference could add up to **tens of seconds**. You should keep in mind the number of concurrent encryption/decryption your application will have to do. On slower hardware you'd see the gap widen even more *(11.2 seconds was the highest difference I obsereved in my application)*
+<ul class="task-list" style="margin-removed 0px; margin-removed 16px; padding-removed 2em; box-sizing: border-box; color: rgb(51, 51, 51); font-family: 'Helvetica Neue', Helvetica, 'Segoe UI', Arial, freesans, sans-serif; font-size: 16px; line-height: 25.6000003814697px;">
+    <li style="box-sizing: border-box;">0.001ms gain during a single iteration for a 170byte buffer doesn&#39;t seem like much but you can try to run the program with a higher&nbsp;<code style="padding-removed 0.2em; padding-removed 0.2em; font-size: 14px; font-family: Consolas, 'Liberation Mono', Menlo, Courier, monospace; box-sizing: border-box; border-radius: 3px; background-color: rgba(0, 0, 0, 0.0392157);">_iterations</code>&nbsp;value and bigger buffer sizes and you&#39;ll see this difference could add up to&nbsp;<strong style="box-sizing: border-box;">tens of seconds</strong>. You should keep in mind the number of concurrent encryption/decryption your application will have to do. On slower hardware you&#39;d see the gap widen even more&nbsp;<em style="box-sizing: border-box;">(11.2 seconds was the highest difference I obsereved in my application)</em></li>
+</ul>
 
-Ping me on [Twitter (@dNetGuru)](https://twitter.com/dNetGuru) if you had any questions/suggestions etc.
+<h2>Final Thoughts&nbsp;</h2>
+
+<p><img alt="" src="http://imgs.xkcd.com/comics/efficiency.png" style="margin-removed 10px; margin-removed 10px; color: rgb(51, 51, 51); font-family: 'Helvetica Neue', Helvetica, 'Segoe UI', Arial, freesans, sans-serif; font-size: 16px; line-height: 25.6000003814697px; width: 329px; height: 214px; float: right;" /></p>
+
+<p style="box-sizing: border-box;"><font color="#333333" face="Helvetica Neue, Helvetica, Segoe UI, Arial, freesans, sans-serif"><span style="font-size: 16px; line-height: 25.6000003814697px;">Now this might seem an awful lot of work (coding and writing) to shave a few milliseconds off&nbsp;</span></font></p>
+
+<p style="box-sizing: border-box;"><font color="#333333" face="Helvetica Neue, Helvetica, Segoe UI, Arial, freesans, sans-serif"><span style="font-size: 16px; line-height: 25.6000003814697px;">(which can be worth it if you&#39;re doing hundreds of thousands of iterations every second) ... which in retrospect was worth it (also, I did it already, so you won&#39;t have to) with all that said, I still feel like what I usually do perfectly matches&nbsp;<a href="http://xkcd.com/1445/">xkcd&#39;s 1445th comic panel</a>&nbsp;(pictured on the side)</span></font></p>
+
+<p style="box-sizing: border-box;">&nbsp;</p>
+
+<p style="font-family: 'Helvetica Neue', Helvetica, 'Segoe UI', Arial, freesans, sans-serif; font-size: 16px; line-height: 25.6000003814697px; color: rgb(51, 51, 51); box-sizing: border-box; margin-removed 0px; margin-removed 0px !important;">Ping me on&nbsp;<a href="https://twitter.com/dNetGuru" style="color: rgb(65, 131, 196); box-sizing: border-box; background-image: initial; background-attachment: initial; background-size: initial; background-origin: initial; background-clip: initial; background-removed: initial; background-repeat: initial;">Twitter (@dNetGuru)</a>&nbsp;if you had any questions/suggestions etc.</p>
+
+<h2>What&#39;s next ?</h2>
+
+<p><span style="color: rgb(51, 51, 51); font-family: 'Helvetica Neue', Helvetica, 'Segoe UI', Arial, freesans, sans-serif; font-size: 16px; line-height: 25.6000003814697px;">I&#39;ll be uploading a helper library that automatically uses the faster AES implementation in the coming days (or next weekend).</span></p>
+
+<p><span style="color: rgb(51, 51, 51); font-family: 'Helvetica Neue', Helvetica, 'Segoe UI', Arial, freesans, sans-serif; font-size: 16px; line-height: 25.6000003814697px;">Expect to see it added to my GitHub repo soon !</span></p>
+
+<h2>History</h2>
+
+<p>Nov 20th 2014 - Initial draft, sync&#39;d with README.md</p>
