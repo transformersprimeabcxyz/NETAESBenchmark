@@ -59,12 +59,16 @@ namespace EncryptionBenchmark
             sw.Start();
             for (int i = 0; i < _iterations; i++)
             {
-                ICryptoTransform crypto = aes.CreateEncryptor();
-                ICryptoTransform decryptor = aes.CreateDecryptor();
-                var encryptedData = crypto.TransformFinalBlock(data, 0, data.Length);
-                decryptor.TransformFinalBlock(encryptedData, 0, encryptedData.Length);
-                crypto.Dispose();
-                decryptor.Dispose();
+                using (var crypto = aes.CreateEncryptor())
+                {
+                    using (var decryptor = aes.CreateDecryptor())
+                    {
+                        var encryptedData = crypto.TransformFinalBlock(data, 0, data.Length);
+                        decryptor.TransformFinalBlock(encryptedData, 0, encryptedData.Length);
+                        crypto.Dispose();
+                        decryptor.Dispose();
+                    }
+                }
             }
             sw.Stop();
 
@@ -95,10 +99,10 @@ namespace EncryptionBenchmark
                         "With the current parameters ...\n"
                         + "Managed AES has a distinct advantage for data sizes below {0} bytes !\n" +
                         "Performance is almost identical (with fluctuations about {4} milliseconds) for the {1} to {2} byte ranges.\n" +
-                        "Use native AES for buffers larger than {3} to save more than {5}ms per iteration !\n" +
+                        "Use native AES for buffers larger than {3} to save ~{5}ms per iteration !\n" +
                         "\nPress enter to run the benchmark further " +
                         ((_msVar <= _margin) ? "to find the upper limit given the current {5}ms margin ...\n" : " (would be an overkill tho) !!!"),
-                        _begSize, _begSize + 1, _cOcSz - _mOE, _cOcSz + 1, _curVar, _margin);
+                        _begSize, _begSize + 1, _cOcSz - (_mOE * _step), _cOcSz + 1, _curVar, _margin);
                     Console.ReadLine();
                     _cOcc = 0;
                 }
