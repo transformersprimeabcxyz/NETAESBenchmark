@@ -1,7 +1,7 @@
 NETAESBenchmark
 ===============
 This is a small (and not so clean) program I wrote quickly to test the performance of Managed vs Native AES implementations available on the framework.
-Background *(Why did I write this)*
+Background *(why did I make this)*
 ============
 As you may know .net framework provides two classes inherited from `Aes` that implement Advanced Encryption Standard, `AesCryptoServiceProvider` which is a native (i.e. non managed code) implementation that calls the [MS CryptoAPI](http://en.wikipedia.org/wiki/Microsoft_CryptoAPI) and `AesManaged` which is a purely managed implementation of the algorithm. So the question most are asking is [which one should I use ?](https://www.google.com/search?q=aesmanaged%20vs%20aescryptoserviceprovider&rct=j)
 
@@ -10,6 +10,16 @@ As you may know .net framework provides two classes inherited from `Aes` that im
 Well, that depends on your application, loading COM objects and calling unmanaged code (e.g. using P/Invoke) is somewhat expensive in terms of memory and the initialization time when compared to instanciating a managed object. On the other hand native code usually runs faster (if implemented correctly).
 
 This creates an interesting phenomena that managed objects perform faster when the initialization time outweighs the execution of the method(s) that we are calling ! And that's why I created this benchmark tool, to evaluate how each implementation performs with different data sizes, key sizes etc.
+
+Assumptions *(More background)*
+============
+Before even coding a single line for this benchmark tool I did assume (due to the reasons stated above) that `AesManaged` should be ideal (faster?) for encrypting/decrypting smaller buffers, while it would be painfully slow when encrypting/decrypting much larger buffers. Which in turn makes the native `AesCryptoServiceProvider` implementation ideal for larger buffers.
+
+Now I had two objectives, test my hypothesis and find the line where initialization overhead would no longer outweigh the execution time and that would be dependent on many factors, from the versions of CAPI and .net framework you'd be using to the host configuration and most imporatntly the average buffer size you would be dealing with in your application *(I'm going to call that the critical buffer size, or critical size for short)*.
+
+This tool can be run on the production machine that has the exact version of all the APIs and the hardware you'd be using in your deployment and configured to try and mimic the scenarios you'd be dealing with.
+
+***NOTE: Just to give you an idea this could save you  0.001 millisecond per iteration when dealing with buffers around 160 bytes (that is 10e-6 seconds) which in my case can be  significants ! If you don't do many iterations or your application/API's performance is not that important I'd say go with CAPI and skip this !***
 
 Configuration
 ============
