@@ -18,6 +18,7 @@ Please take a look at the "Settings" region to fine tune the benchmark parameter
         const CipherMode _cipherMode = CipherMode.CBC;
         const PaddingMode _padding = PaddingMode.PKCS7;
         private const int _mOE = 10;
+        private const bool _disposeEachCycle = true;
         #endregion
 ```
 You'll want to change the following at the very least:
@@ -27,6 +28,7 @@ You'll want to change the following at the very least:
 * `_step`: the current data array size is incremented by `_step` each iteration (I'd suggest you keep this at 1 for the most granular result, however this can be used in conjunction with `_startSize` and `_maxSize` to first find the approximate size you want so you can investigate further in a later run)
 * set the `_cipherMode` and the `_padding` to the ones you'd be using, as well as the `_keysize`
 * `_mOE` tells the program how many times to run the iteration past the point it finds Managed AES to be slower (10 is a good number, this will directly affect the number of times you'd have to press <enter> to get the final results. The intermediate results could also be interesting)
+* `_disposeEachCycle` can be set to false to emualte scenarios where the crypto transform is reused (e.g. using the same keys all the time, no salting, etc.) bear in mind that the Native Decryptor transform goes out of sync the first time you call the `TransformFinalBlock()` on it therefore the benchmark code always calls `CreateDecryptor()` for a new Decryptor (otherwise a `CryptographicException` is thrown with the message *Padding is invalid and cannot be removed* *[bug?]*)
 
 Sample results
 =============
