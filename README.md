@@ -1,9 +1,16 @@
 NETAESBenchmark
 ===============
 This is a small (and not so clean) program I wrote quickly to test the performance of Managed vs Native AES implementations available on the framework.
-Why did you write this ?
+Background *(Why did I write this)*
 ============
-TODO: Write up !
+As you may know .net framework provides two classes inherited from `Aes` that implement Advanced Encryption Standard, `AesCryptoServiceProvider` which is a native (i.e. non managed code) implementation that calls the [MS CryptoAPI](http://en.wikipedia.org/wiki/Microsoft_CryptoAPI) and `AesManaged` which is a purely managed implementation of the algorithm. So, [https://www.google.com/search?q=aesmanaged%20vs%20aescryptoserviceprovider&rct=j](which one should I use ?)
+
+`AesCryptoServiceProvider` calls CAPI which is FIPS compliant (wheras `AesManaged` isn't) and CAPI is managed code and it is [generally accepted that native code runs faster than managed code](https://www.google.com/webhp?ion=1&ie=UTF-8#q=managed%20code%20vs%20native%20code%20performance) due to various overheads like JIT compilation and the fact that there is an extra abstraction layer on top of the operating system when you're running managed code ... that may be true, but does that mean that it is always a good idea to call native implementation of an algorithm in a managed environment ? Can we write `AesManaged` off ?
+
+Well, that depends on your application, loading COM objects and calling unmanaged code (e.g. using P/Invoke) is somewhat expensive in terms of memory and the initialization time when compared to instanciating a managed object. On the other hand native code usually runs faster (if implemented correctly).
+
+This creates an interesting phenomena that managed objects perform faster when the initialization time outweighs the execution of the method(s) that we are calling ! And that's why I created this benchmark tool, to evaluate how each implementation performs with different data sizes, key sizes etc.
+
 Configuration
 ============
 Please take a look at the "Settings" region to fine tune the benchmark parameters to emulate your application behavior/needs.
