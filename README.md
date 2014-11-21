@@ -1,7 +1,7 @@
 NETAESBenchmark
 ===============
 This is a small (and not so clean) program I wrote quickly to test the performance of Managed vs Native AES implementations available on the framework.
-Background *(why did I make this)*
+Background
 ============
 As you may know .net framework provides two classes inherited from `Aes` that implement Advanced Encryption Standard, `AesCryptoServiceProvider` which is a native (i.e. non managed code) implementation that calls the [MS CryptoAPI](http://en.wikipedia.org/wiki/Microsoft_CryptoAPI) and `AesManaged` which is a purely managed implementation of the algorithm. So the question most are asking is [which one should I use ?](https://www.google.com/search?q=aesmanaged%20vs%20aescryptoserviceprovider&rct=j)
 
@@ -11,7 +11,7 @@ Well, that depends on your application, loading COM objects and calling unmanage
 
 This creates an interesting phenomena that managed objects perform faster when the initialization time outweighs the execution of the method(s) that we are calling ! And that's why I created this benchmark tool, to evaluate how each implementation performs with different data sizes, key sizes etc.
 
-Assumptions *(More background)*
+Approach / Assumptions
 ============
 Before even coding a single line for this benchmark tool I did assume (due to the reasons stated above) that `AesManaged` should be ideal (faster?) for encrypting/decrypting smaller buffers, while it would be painfully slow when encrypting/decrypting much larger buffers. Which in turn makes the native `AesCryptoServiceProvider` implementation ideal for larger buffers.
 
@@ -77,5 +77,7 @@ Press enter to exit ...
 Result: if your average data size approaches 170 bytes ManagedAes would be 0.001
 014ms slower which approaches your margin !
 ```
+
+Now, 0.001ms gain on a 170byte buffer doesn't seem like much but you can try to run the program with a higher `_iterations` value and bigger buffer sizes and you'll see this difference could add up to **tens of seconds** *(11.2 seconds was the highest difference I obsereved in my application)*
 
 *TODO: complete this ...*
