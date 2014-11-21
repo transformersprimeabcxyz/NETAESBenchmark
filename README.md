@@ -1,6 +1,11 @@
 NETAESBenchmark
 ===============
 This is a small (and not so clean) program I wrote quickly to test the performance of Managed vs Native AES implementations available on the framework.
+Why did you write this ?
+============
+TODO: Write up !
+Configuration
+============
 Please take a look at the "Settings" region to fine tune the benchmark parameters to emulate your application behavior/needs.
 ```C# 
         #region "Settings"
