@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Security.Cryptography;
 using System.Diagnostics;
-using System.Threading;
+using System.Security.Cryptography;
 
 // ReSharper disable once RedundantAssignment
 
-namespace EncryptionBenchmark
+namespace NETAESBenchmark
 {
     class Program
     {
