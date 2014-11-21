@@ -17,13 +17,13 @@ Before even coding a single line for this benchmark tool I did assume (due to th
 
 Now I had two objectives, test my hypothesis and find the line where initialization overhead would no longer outweigh the execution time and that would be dependent on many factors, from the versions of CAPI and .net framework you'd be using to the host configuration and most imporatntly the average buffer size you would be dealing with in your application *(I'm going to call that the critical buffer size, or critical size for short)*.
 
-This tool can be run on the production machine that has the exact version of all the APIs and the hardware you'd be using in your deployment and configured to try and mimic the scenarios you'd be dealing with.
+This tool can be run on the production machine that has the exact version of all the APIs and the hardware you'd be using in your deployment and configured to try and mimic the scenarios you'd be dealing with to find the critical size in your environment *(I haven't run this code in many places, so I can't comment in how each of those factos might correlate just yet)*.
 
 ***NOTE: Just to give you an idea this could save you  0.001 millisecond per iteration when dealing with buffers around 160 bytes (that is 10e-6 seconds) which in my case can be  significants ! If you don't do many iterations or your application/API's performance is not that important I'd say go with CAPI and skip this !***
 
 Configuration
 ============
-Please take a look at the "Settings" region to fine tune the benchmark parameters to emulate your application behavior/needs.
+Configuration is pretty straightforward since I wrote/tested documented this in a couple of hours, just take a look at the "Settings" region to fine tune the benchmark parameters (by changing the consts) to emulate your application behavior/needs.
 ```C# 
         #region "Settings"
         private const double _margin = 0.001;
@@ -38,7 +38,7 @@ Please take a look at the "Settings" region to fine tune the benchmark parameter
         private const bool _disposeEachCycle = true;
         #endregion
 ```
-You'll want to change the following at the very least:
+Here's a description of what each of the settings do *(pardon my abstract naming convention)*:
 * `_margin`: is the time difference in milliseconds that you'd consider a significant gain for using Native AES implementation over the Managed counterpart.
 * `_iterations`: is the number of times you'd want to run a Encrypt, Decrypt, Dispose cycle for each data size (Bear in mind that setting the _iterations to something lower than 1000 won't give you consistent results, however at higher iterations the overall margin of error associated with the measurements (mostly timing) is minimized and you'll get more consistent results)
 * `_startSize` and `_maxSize` specify the minimum and maximum data array sizes (useful if you'd want to cap the benchmark or skip lower array sizes)
@@ -78,4 +78,4 @@ Result: if your average data size approaches 170 bytes ManagedAes would be 0.001
 014ms slower which approaches your margin !
 ```
 
-TODO: complete this !
+*TODO: complete this ...*
