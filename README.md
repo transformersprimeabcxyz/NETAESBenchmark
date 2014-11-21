@@ -78,6 +78,4 @@ Result: if your average data size approaches 170 bytes ManagedAes would be 0.001
 014ms slower which approaches your margin !
 ```
 
-Now, 0.001ms gain on a 170byte buffer doesn't seem like much but you can try to run the program with a higher `_iterations` value and bigger buffer sizes and you'll see this difference could add up to **tens of seconds** *(11.2 seconds was the highest difference I obsereved in my application)*
-
-*TODO: complete this ...*
+- 0.001ms gain during a single iteration for a 170byte buffer doesn't seem like much but you can try to run the program with a higher `_iterations` value and bigger buffer sizes and you'll see this difference could add up to **tens of seconds** *(11.2 seconds was the highest difference I obsereved in my application)*
