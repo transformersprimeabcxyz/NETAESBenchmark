@@ -1,4 +1,4 @@
-NETAESBenchmark
+.NET AES Benchmark
 ===============
 This is a small (and not so clean) program I wrote quickly to test the performance of Managed vs Native AES implementations available on the framework.
 Background
@@ -21,13 +21,14 @@ This tool can be run on the production machine that has the exact version of all
 
 ***NOTE: Just to give you an idea this could save you  0.001 millisecond per iteration when dealing with buffers around 160 bytes (that is 10e-6 seconds) which in my case can be  significants ! If you don't do many iterations or your application/API's performance is not that important I'd say go with CAPI and skip this !***
 
+
 Configuration
 ============
 Configuration is pretty straightforward since I wrote/tested documented this in a couple of hours, just take a look at the "Settings" region to fine tune the benchmark parameters (by changing the consts) to emulate your application behavior/needs.
 ```C# 
         #region "Settings"
         private const double _margin = 0.001;
-        const int _keysize = 32;
+        const int _keysize = 256;
         const int _iterations = 0x186A0 / 10;
         const int _startSize = 1;
         const int _maxSize = 2000;
@@ -78,4 +79,6 @@ Result: if your average data size approaches 170 bytes ManagedAes would be 0.001
 014ms slower which approaches your margin !
 ```
 
-- 0.001ms gain during a single iteration for a 170byte buffer doesn't seem like much but you can try to run the program with a higher `_iterations` value and bigger buffer sizes and you'll see this difference could add up to **tens of seconds** *(11.2 seconds was the highest difference I obsereved in my application)*
+- 0.001ms gain during a single iteration for a 170byte buffer doesn't seem like much but you can try to run the program with a higher `_iterations` value and bigger buffer sizes and you'll see this difference could add up to **tens of seconds**. You should keep in mind the number of concurrent encryption/decryption your application will have to do. On slower hardware you'd see the gap widen even more *(11.2 seconds was the highest difference I obsereved in my application)*
+
+Ping me on [Twitter (@dNetGuru)](https://twitter.com/dNetGuru) if you had any questions/suggestions etc.
